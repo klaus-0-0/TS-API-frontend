@@ -24,7 +24,7 @@ type ArtApiResponse = {
 function App() {
   const [data, setData] = useState<Artwork[]>([]);
   const [page, setPage] = useState<number | null>();
-  const [nextButton, setNextButton] = useState<number[]>([1, 2, 3, 4]);
+  const [nextButton, setNextButton] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [message, setMessage] = useState<string>("");
   const [checkBox, setCheckbox] = useState<number[]>([]);
@@ -48,6 +48,7 @@ function App() {
       const res = await axios.get<ArtApiResponse>(API);
       setData(res.data.data);
       setPage(res.data.pagination.total);
+      setNextButton([1, 2, 3, 4]);
       console.log(res);
     };
 
