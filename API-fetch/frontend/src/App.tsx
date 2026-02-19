@@ -24,7 +24,7 @@ type ArtApiResponse = {
 function App() {
   const [data, setData] = useState<Artwork[]>([]);
   const [page, setPage] = useState<number | null>();
-  const [nextButton, setNextButton] = useState<number[]>([1, 2, 3, 4]);
+  const [nextButton, setNextButton] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [message, setMessage] = useState<string>("");
   const [checkBox, setCheckbox] = useState<number[]>([]);
@@ -48,6 +48,7 @@ function App() {
       const res = await axios.get<ArtApiResponse>(API);
       setData(res.data.data);
       setPage(res.data.pagination.total);
+      setNextButton([1, 2, 3, 4]);
       console.log(res);
     };
 
@@ -92,69 +93,159 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-4 md:p-6">
       {message}
-      <div className="">
-        <div className="grid grid-cols-[60px_2fr_1fr_2fr_2fr_1fr_1fr] gap-4 font-semibold border-b pb-2">
-          <div className="flex gap-2 justify-center items-center">
-            <input type="checkbox" onClick={() => handleCheckBoxTrue()} className="h-6 w-6"></input>
-            <button onClick={() => handleShowInputBox()} className="cursor-pointer text-gray-700 ">
-              <img src={down} className="h-4 w-4"></img>
-            </button>
-            {showInputBox && (
-              <div
-                className="absolute top-14 left-20 z-50 w-64 border rounded bg-white shadow-lg p-3 space-y-3 "
+      {data.length > 0 ? (
+        <>
+          {/* Header (Desktop only) */}
+          <div className="hidden md:grid grid-cols-7 gap-2 font-semibold border-b pb-2">
+            <div className="flex gap-2 justify-center items-center">
+              <input
+                type="checkbox"
+                onClick={handleCheckBoxTrue}
+                className="h-5 w-5"
+              />
+              <button
+                onClick={handleShowInputBox}
+                className="cursor-pointer text-gray-700"
               >
-                <p className="text-sm font-medium text-gray-700">
-                  Select multiple rows
-                </p>
+                <img src={down} className="h-4 w-4" />
+              </button>
+            </div>
+            <span>Title</span>
+            <span>Origin</span>
+            <span>Artist</span>
+            <span>Inscriptions</span>
+            <span>Start</span>
+            <span>End</span>
+          </div>
 
+          {/* Select rows popup */}
+          {showInputBox && (
+            <div className="absolute top-16 left-4 z-50 w-64 border rounded bg-white shadow-lg p-3 space-y-3">
+              <p className="text-sm font-medium text-gray-700">
+                Select multiple rows
+              </p>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  className="flex-1 border rounded px-2 py-1"
+                  placeholder="Enter value"
+                  onChange={(e) => setRowValue(e.target.value)}
+                />
+                <button
+                  className="px-3 py-1 bg-blue-500 text-white rounded"
+                  onClick={handlerowValue}
+                >
+                  Select
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Rows */}
+          <div className="mt-4 space-y-3">
+            {data.map((art) => (
+              <div
+                key={art.id}
+                className="border p-3 rounded grid grid-cols-1 gap-2 md:grid-cols-7 md:gap-4"
+              >
+                {/* Checkbox */}
                 <div className="flex items-center gap-2">
                   <input
-                    type="text"
-                    className="flex-1 border rounded px-2 py-1 w-7"
-                    placeholder="Enter value"
-                    onChange={(e) => setRowValue(e.target.value)}
+                    type="checkbox"
+                    checked={
+                      checkboxTrue
+                        ? allCheckbox.includes(art.id)
+                        : checkBox.includes(art.id) ||
+                        rowValueSelect.includes(art.id)
+                    }
+                    onChange={() =>
+                      setCheckbox((prev) =>
+                        prev.includes(art.id)
+                          ? prev.filter((id) => id !== art.id)
+                          : [...prev, art.id]
+                      )
+                    }
                   />
-                  <button className="px-3 py-1 bg-blue-500 text-white rounded cursor-pointer" onClick={() => handlerowValue()}>
-                    Select
-                  </button>
+                </div>
+
+                {/* Title */}
+                <div className="flex gap-2 md:block">
+                  <span className="md:hidden font-semibold">Title:</span>
+                  <p className="truncate">{art.title}</p>
+                </div>
+
+                {/* Origin */}
+                <div className="flex gap-2 md:block">
+                  <span className="md:hidden font-semibold">Origin:</span>
+                  <p>{art.place_of_origin ?? "Unknown"}</p>
+                </div>
+
+                {/* Artist */}
+                <div className="flex gap-2 md:block">
+                  <span className="md:hidden font-semibold">Artist:</span>
+                  <p className="line-clamp-2">{art.artist_display}</p>
+                </div>
+
+                {/* Inscriptions */}
+                <div className="flex gap-2 md:block">
+                  <span className="md:hidden font-semibold">Inscriptions:</span>
+                  <p className="line-clamp-2">
+                    {art.inscriptions ?? "n/a"}
+                  </p>
+                </div>
+
+                {/* Start */}
+                <div className="flex gap-2 md:block">
+                  <span className="md:hidden font-semibold">Start:</span>
+                  <p>{art.date_start ?? "-"}</p>
+                </div>
+
+                {/* End */}
+                <div className="flex gap-2 md:block">
+                  <span className="md:hidden font-semibold">End:</span>
+                  <p>{art.date_end ?? "-"}</p>
                 </div>
               </div>
-            )}
-
+            ))}
           </div>
-          <span>Title</span>
-          <span>Origin</span>
-          <span>Artist</span>
-          <span>Inscriptions</span>
-          <span>Start</span>
-          <span>End</span>
-        </div>
 
-        {data.map((art) => (
-          <div
-            key={art.id}
-            className="grid grid-cols-[60px_2fr_1fr_2fr_2fr_1fr_1fr] gap-4 items-start border p-3 rounded bg-"
-          >
-            <input type="checkbox" checked={checkboxTrue ? allCheckbox.includes(art.id) : checkBox.includes(art.id) || rowValueSelect.includes(art.id)} onChange={() => setCheckbox(prev => prev.includes(art.id) ? prev.filter(id => id !== art.id) : [...prev, art.id])} />
-            <p className="font-medium truncate">{art.title}</p>
-            <p>{art.place_of_origin ?? "Unknown"}</p>
-            <p className="line-clamp-2">{art.artist_display}</p>
-            <p className="line-clamp-2">{art.inscriptions ?? "n/a"}</p>
-            <p>{art.date_start ?? "-"}</p>
-            <p>{art.date_end ?? "-"}</p>
+          {/* Pagination */}
+          <div className="flex flex-wrap justify-center md:justify-end gap-2 mt-6">
+            <button
+              className="px-4 py-2 bg-gray-300 rounded"
+              onClick={handlePreviosButton}
+            >
+              Previous
+            </button>
+
+            {nextButton.map((val, idx) => (
+              <button
+                key={idx}
+                className="px-4 py-2 bg-gray-300 rounded"
+                onClick={() => setCurrentPage(val)}
+              >
+                {val}
+              </button>
+            ))}
+
+            <button
+              className="px-4 py-2 bg-gray-300 rounded"
+              onClick={handleNextButton}
+            >
+              Next
+            </button>
           </div>
-        ))}
-
-        <div className="flex justify-end gap-1 mt-2">
-          <button className="p-3 bg-gray-300 border rounded-md cursor-pointer" onClick={() => handlePreviosButton()}>Previous</button>
-          {nextButton.map((val, idx) => (
-            <button key={idx} className="p-3 bg-gray-300 border rounded-md cursor-pointer" onClick={() => setCurrentPage(val)}>{val}</button>
-          ))}
-          <button className="p-3 bg-gray-300 border rounded-md cursor-pointer" onClick={() => handleNextButton()}>Next</button>
+        </>
+      ) : (
+        /* Loader */
+        <div className="flex justify-center items-center">
+          <p className="text-gray-900 text-lg">Loading artworks...</p>
         </div>
-      </div>
+      )}
+
     </div>
   );
 }
